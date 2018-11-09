@@ -23,7 +23,7 @@ endif
 ifeq ($(CYGWIN),1)
  	NPROCS:=$(NUMBER_OF_PROCESSORS)
 endif
-EXTRA_JTREG_OPTIONS += -concurrency:$(NPROCS)
+EXTRA_JTREG_OPTIONS += -concurrency:1
 
 JTREG_BASIC_OPTIONS += -agentvm
 # Only run automatic tests
