@@ -23,7 +23,7 @@ endif
 ifeq ($(CYGWIN),1)
  	NPROCS:=$(NUMBER_OF_PROCESSORS)
 endif
-EXTRA_JTREG_OPTIONS += -concurrency:$(NPROCS)
+EXTRA_JTREG_OPTIONS += -concurrency:1
 
 JTREG_BASIC_OPTIONS += -agentvm
 # Only run automatic tests
@@ -39,7 +39,7 @@ JTREG_BASIC_OPTIONS += -retain:fail,error
 JTREG_IGNORE_OPTION = -ignore:quiet
 JTREG_BASIC_OPTIONS += $(JTREG_IGNORE_OPTION)
 # Multiple by 4 the timeout numbers
-JTREG_TIMEOUT_OPTION =  -timeoutFactor:4
+JTREG_TIMEOUT_OPTION =  -timeoutFactor:8
 JTREG_BASIC_OPTIONS += $(JTREG_TIMEOUT_OPTION)
 # Create junit xml
 JTREG_XML_OPTION = -xml:verify
