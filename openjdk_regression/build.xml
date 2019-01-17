@@ -80,16 +80,16 @@
 			<contains string="${JVM_VERSION}" substring="openj9"/>
 			<then>
 				<property name="jdkName" value="openj9-openjdk-jdk${JDK_VERSION}" />
-				<property name="regressionRepo" value="https://github.com/ibmruntimes/openj9-openjdk-jdk${JDK_VERSION}.git" />
+				<property name="regressionRepo" value="https://github.com/ben-walsh/openj9-openjdk-jdk11.git" />
 			</then>
 			<else>
 				<property name="jdkName" value="${openjdkGit}" />
 				<property name="regressionRepo" value="https://github.com/AdoptOpenJDK/${openjdkGit}.git" />
 			</else>
 		</if>
-		<echo message="git clone --depth 1 -q ${gitReleaseTag} ${regressionRepo}" />
+		<echo message="git clone --depth 1 -q ${gitReleaseTag} -b invAdaptSocket ${regressionRepo}" />
 		<exec executable="git" failonerror="false">
-			<arg line="clone --depth 1 -q ${gitReleaseTag} ${regressionRepo}" />
+			<arg line="clone --depth 1 -q ${gitReleaseTag} -b invAdaptSocket ${regressionRepo}" />
 		</exec>
 		<move file="${jdkName}" tofile="openjdk-jdk"/>
 	</target>
