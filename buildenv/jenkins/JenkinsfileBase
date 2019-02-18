@@ -387,6 +387,8 @@ def testBuild() {
 				post("${env.BUILD_LIST}")
 			}
 		} finally {
+                        echo "BPW: Archive step in base file"
+			archiveArtifacts artifacts: '**', excludes: 'openjdk*'
 			if (!params.KEEP_WORKSPACE) {
 				cleanWs()
 			}
