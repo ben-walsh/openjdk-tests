@@ -83,7 +83,7 @@
 			<contains string="${JVM_VERSION}" substring="openj9"/>
 			<then>
 				<property name="jdkName" value="openj9-openjdk-jdk${JDK_VERSION}" />
-				<property name="regressionRepo" value="https://github.com/ben-walsh/openj9-openjdk-jdk11.git" />
+				<property name="regressionRepo" value="https://github.com/ben-walsh/openj9-openjdk-jdk12.git" />
 			</then>
 			<else>
 				<property name="jdkName" value="${openjdkGit}" />
