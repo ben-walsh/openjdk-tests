@@ -14,7 +14,7 @@
 # AdoptOpenJDK jdk binary installed. Basic test dependent executions
 # are installed during the building process.
 #
-# Build functional: `docker build -t adoptopenjdk-functional-test .`
+# Build functional: `docker build -t adoptopenjdk-functional-test -f Dockerfile ../.`
 #
 # This Dockerfile builds image based on adoptopenjdk/openjdk8:latest.
 # If you want to build image based on other images, please use
@@ -33,6 +33,9 @@ FROM $IMAGE_NAME:$IMAGE_VERSION
 RUN apt-get update \
 	&& apt-get -y install \
 	ant \
+	ant-contrib \
+	autoconf \
+	bash \
 	apt-transport-https \
 	ca-certificates \
 	dirmngr \
@@ -41,20 +44,12 @@ RUN apt-get update \
 	make \
 	unzip \
 	vim \
+	zip \
 	wget \
-	gcc
-
-RUN apt-get -y install \
+	gcc \
 	libtext-csv-perl \
-	libjson-perl
-
-
-# Install ant
-ENV ANT_VERSION 1.10.5
-RUN wget --no-check-certificate https://www.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz && \
-    gunzip apache-ant-${ANT_VERSION}-bin.tar.gz && \
-    tar -xvf apache-ant-${ANT_VERSION}-bin.tar
-
+	libjson-perl \
+	libxml-parser-perl
 
 VOLUME ["/java"]
 ENV JAVA_HOME=/java \
@@ -68,12 +63,6 @@ COPY ./dockerfile/functional-test.sh /functional-test.sh
 # Clone the repo where the functional tests reside. 
 WORKDIR /
 RUN pwd
-
-ENV ANT_HOME ${WORKDIR}/apache-ant-${ANT_VERSION}
-
-RUN wget https://sourceforge.net/projects/ant-contrib/files/ant-contrib/1.0b3/ant-contrib-1.0b3-bin.tar.gz && \
-    tar -zxvf ant-contrib-1.0b3-bin.tar.gz && \
-    cp ant-contrib/ant-contrib-1.0b3.jar ${ANT_HOME}/lib
 
 # Clone OpenJ9 functional test repo
 RUN git clone https://github.com/eclipse/openj9.git

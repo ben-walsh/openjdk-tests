@@ -14,7 +14,7 @@
 # AdoptOpenJDK jdk binary installed. Basic test dependent executions
 # are installed during the building process.
 #
-# Build tomcat: `docker build -t adoptopenjdk-tomcat-test .`
+# Build tomcat: `docker build -t adoptopenjdk-tomcat-test -f Dockerfile ../.`
 #
 # This Dockerfile builds image based on adoptopenjdk/openjdk8:latest.
 # If you want to build image based on other images, please use
@@ -62,7 +62,7 @@ WORKDIR /
 RUN pwd
 
 # Clone tomcat to /tomcat 
-RUN git clone https://github.com/apache/tomcat85.git
+RUN git clone https://github.com/apache/tomcat.git
 
 ENTRYPOINT ["/bin/bash", "/tomcat-test.sh"]
 CMD ["--version"]

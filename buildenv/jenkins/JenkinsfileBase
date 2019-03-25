@@ -24,21 +24,26 @@ def setupEnv() {
 	// if ADOPTOPENJDK_REPO and ADOPTOPENJDK_BRANCH are provided, clean the workpsace and re-download it
 	if (params.ADOPTOPENJDK_REPO && params.ADOPTOPENJDK_BRANCH) {
 		cleanWs()
+
+		def remoteConfigParameters = [url: "${params.ADOPTOPENJDK_REPO}"]
+		if (params.ADOPTOPENJDK_REPO.startsWith('git') && params.USER_CREDENTIALS_ID && !SPEC.startsWith('zos')) {
+			remoteConfigParameters.put('credentialsId', "${params.USER_CREDENTIALS_ID}")
+		}
+		
 		checkout([
 			$class: 'GitSCM', branches: [[name: "*/${params.ADOPTOPENJDK_BRANCH}"]],
 			extensions: [[$class:'CloneOption', shallow:true, depth:1],[$class: 'CleanBeforeCheckout'],[$class: 'RelativeTargetDirectory', relativeTargetDir: 'openjdk-tests']],
-			userRemoteConfigs: [[url: "${params.ADOPTOPENJDK_REPO}"]]
+			userRemoteConfigs: [remoteConfigParameters]
 		])
 	}
 
-	// env.JAVA_VERSION = "${getJavaVersionFromJvmVersion()}"
-	env.JAVA_VERSION = "${JAVA_VERSION}"
-	/* Optional parameter JAVA_VERSION to use for Panama/Valhalla/Amber cases, otherwise its calculated from JVM_VERSION */ 
-	if( params.JAVA_VERSION ) {
-		env.JAVA_VERSION = params.JAVA_VERSION
+	if ( params.JDK_VERSION ) {
+		env.JDK_VERSION = params.JDK_VERSION
+	} else if ( params.JAVA_VERSION ) { // temporarily support JAVA_VERSION
+		env.JDK_VERSION = (params.JAVA_VERSION.trim())[2..-2];
 	}
 
-	env.JAVA_BIN = "$WORKSPACE/openjdkbinary/j2sdk-image/${(JAVA_VERSION == 'SE80') ? 'jre/' : ''}bin"
+	env.JAVA_BIN = "$WORKSPACE/openjdkbinary/j2sdk-image/${(JDK_VERSION == '8') ? 'jre/' : ''}bin"
 	env.JRE_IMAGE = "$WORKSPACE/openjdkbinary/j2jre-image"
 	env.JAVA_HOME = "${JAVA_BIN}/.."
 	env.JVM_VERSION = params.JVM_VERSION ? params.JVM_VERSION : ""
@@ -47,8 +52,9 @@ def setupEnv() {
 	env.EXTRA_DOCKER_ARGS = params.EXTRA_DOCKER_ARGS ? params.EXTRA_DOCKER_ARGS : ""
 	env.SPEC = "${SPEC}"
 	env.TEST_FLAG = params.TEST_FLAG ? params.TEST_FLAG : ''
+	env.KEEP_REPORTDIR = params.KEEP_REPORTDIR ? params.KEEP_REPORTDIR : ''
 	SDK_RESOURCE = params.SDK_RESOURCE ? params.SDK_RESOURCE : "upstream"
-
+	env.AUTO_DETECT = params.AUTO_DETECT
 	if (params.JDK_IMPL) {
 		env.JDK_IMPL = params.JDK_IMPL
 	} else if (params.JVM_VERSION) {
@@ -67,10 +73,10 @@ def setupEnv() {
 	}
 
 	if (env.BUILD_LIST.startsWith("jck")) {
-		if ( JAVA_VERSION == "SE80" ) {
+		if ( JDK_VERSION == "8" ) {
 			env.JCK_VERSION = "jck8b"
 		} else {
-			env.JCK_VERSION = "jck${JAVA_VERSION[2..-2]}"
+			env.JCK_VERSION = "jck${JDK_VERSION}"
 		}
 		env.JCK_ROOT = "$WORKSPACE/../jck_root"
 		echo "env.JCK_ROOT is: ${env.JCK_ROOT}, env.JCK_VERSION is: ${env.JCK_VERSION}"
@@ -119,7 +125,7 @@ def setupParallelEnv() {
 						string(name: 'ADOPTOPENJDK_BRANCH', value: ADOPTOPENJDK_BRANCH),
 						string(name: 'OPENJ9_REPO', value: OPENJ9_REPO),
 						string(name: 'OPENJ9_BRANCH', value: OPENJ9_BRANCH),
-						string(name: 'JAVA_VERSION', value: JAVA_VERSION),
+						string(name: 'JDK_VERSION', value: JDK_VERSION),
 						string(name: 'JDK_IMPL', value: JDK_IMPL),
 						string(name: 'BUILD_LIST', value: "${env.BUILD_LIST}/${testSubDir}"),
 						string(name: 'TARGET', value: TARGET),
@@ -130,6 +136,7 @@ def setupParallelEnv() {
 						string(name: 'UPSTREAM_JOB_NAME', value: UPSTREAM_JOB_NAME),
 						string(name: 'UPSTREAM_JOB_NUMBER', value: UPSTREAM_JOB_NUMBER),
 						string(name: 'TEST_FLAG', value: TEST_FLAG),
+						string(name: 'KEEP_REPORTDIR', value: KEEP_REPORTDIR),
 						string(name: 'EXTRA_OPTIONS', value: EXTRA_OPTIONS),
 						string(name: 'JVM_OPTIONS', value: JVM_OPTIONS),
 						string(name: 'ITERATIONS', value: ITERATIONS),
@@ -140,6 +147,7 @@ def setupParallelEnv() {
 						string(name: 'ARTIFACTORY_SERVER', value: ARTIFACTORY_SERVER),
 						booleanParam(name: 'PERSONAL_BUILD', value: PERSONAL_BUILD),
 						booleanParam(name: 'IS_PARALLEL', value: false),
+						booleanParam(name: 'AUTO_DETECT', value: AUTO_DETECT),
 					]
 				}
 			}
@@ -185,13 +193,38 @@ def setup() {
 			OPENJ9_BRANCH_OPTION = (params.OPENJ9_BRANCH) ? "--openj9_branch ${params.OPENJ9_BRANCH}" : ""
 			OPENJ9_SHA_OPTION = (params.OPENJ9_SHA) ? "--openj9_sha ${params.OPENJ9_SHA}" : ""
 
+			// system test repository exports to be used by systemtest/common.xml
+			if (params.ADOPTOPENJDK_SYSTEMTEST_REPO) {
+				env.ADOPTOPENJDK_SYSTEMTEST_REPO = params.ADOPTOPENJDK_SYSTEMTEST_REPO 
+			}
+			
+			if (params.ADOPTOPENJDK_SYSTEMTEST_BRANCH) {
+				env.ADOPTOPENJDK_SYSTEMTEST_BRANCH = params.ADOPTOPENJDK_SYSTEMTEST_BRANCH
+			} 
+			
+			if (params.OPENJ9_SYSTEMTEST_REPO) {
+				env.OPENJ9_SYSTEMTEST_REPO = params.OPENJ9_SYSTEMTEST_REPO
+			}
+			
+			if (params.OPENJ9_SYSTEMTEST_BRANCH) {
+				env.OPENJ9_SYSTEMTEST_BRANCH = params.OPENJ9_SYSTEMTEST_BRANCH
+			} 
+			
+			if (params.STF_REPO) {
+				env.STF_REPO = params.STF_REPO
+			}
+			
+			if (params.STF_BRANCH) {
+				env.STF_BRANCH = params.STF_BRANCH
+			}
+			
 			// vendor test
 			// expect VENDOR_TEST_* to be comma separated string parameters
 			VENDOR_TEST_REPOS = (params.VENDOR_TEST_REPOS) ? "--vendor_repos \"${params.VENDOR_TEST_REPOS}\"" : ""
 			VENDOR_TEST_BRANCHES = (params.VENDOR_TEST_BRANCHES) ? "--vendor_branches \"${params.VENDOR_TEST_BRANCHES}\"" : ""
 			VENDOR_TEST_DIRS = (params.VENDOR_TEST_DIRS) ? "--vendor_dirs \"${params.VENDOR_TEST_DIRS}\"" : ""
 			VENDOR_TEST_SHAS = (params.VENDOR_TEST_SHAS) ? "--vendor_shas \"${params.VENDOR_TEST_SHAS}\"" : ""
-			GET_SH_CMD = "./openjdk-tests/get.sh -s `pwd` -t `pwd`/openjdk-tests -p $PLATFORM -r ${SDK_RESOURCE} -j ${JAVA_VERSION} -i ${JDK_IMPL} ${CUSTOMIZED_SDK_URL_OPTION} ${OPENJ9_REPO_OPTION} ${OPENJ9_BRANCH_OPTION} ${OPENJ9_SHA_OPTION} ${VENDOR_TEST_REPOS} ${VENDOR_TEST_BRANCHES} ${VENDOR_TEST_DIRS} ${VENDOR_TEST_SHAS}"
+			GET_SH_CMD = "./openjdk-tests/get.sh -s `pwd` -t `pwd`/openjdk-tests -p $PLATFORM -r ${SDK_RESOURCE} -j ${JDK_VERSION} -i ${JDK_IMPL} ${CUSTOMIZED_SDK_URL_OPTION} ${OPENJ9_REPO_OPTION} ${OPENJ9_BRANCH_OPTION} ${OPENJ9_SHA_OPTION} ${VENDOR_TEST_REPOS} ${VENDOR_TEST_BRANCHES} ${VENDOR_TEST_DIRS} ${VENDOR_TEST_SHAS}"
 
 			dir( WORKSPACE) {
 				// use sshagent with Jenkins credentials ID for all platforms except zOS
@@ -273,6 +306,7 @@ def runTest(subDir) {
 				iterations = "${params.ITERATIONS}".toInteger()
 			}
 			def CUSTOM_OPTION = ''
+			TARGET = "${params.TARGET}";
 			if (TARGET.contains('custom')) {
 				CUSTOM_OPTION = "${TARGET.toUpperCase()}_TARGET='${CUSTOM_TARGET}'"
 			}
@@ -321,7 +355,13 @@ def post(output_name) {
 				pax_opt = "-x pax"
 				tar_opt = ""
 			}
-			step([$class: "TapPublisher", testResults: "**/*.tap", outputTapToConsole: false])
+
+			boolean failIfNoResultsValue = true
+			if (params.IS_PARALLEL == true) {
+				failIfNoResultsValue = false
+			}
+			step([$class: "TapPublisher", testResults: "**/*.tap", outputTapToConsole: false, failIfNoResults: failIfNoResultsValue])
+
 			junit allowEmptyResults: true, keepLongStdio: true, testResults: '**/work/**/*.jtr.xml, **/junitreports/**/*.xml, **/external_test_reports/**/*.xml'
 			if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_TEST_RESULTS) {
 				def test_output_tar_name = "${output_name}_test_output${suffix}"
@@ -388,15 +428,6 @@ def testBuild() {
 	}
 }
 
-def getJavaVersionFromJvmVersion() {
-	String regex = ${JVM_VERSION}
-	def m = regex =~ /^openjdk(\d+)(-openj9|-sap)?$/
-	def match = m[0][1]
-	def java_version = "SE$match0"
-	echo "java_version=$java_version"
-	return java_version
-}
-
 def getJDKImpl(jvm_version) {
 	def jdk_impl = 'hotspot'
 	if (jvm_version.contains('openj9')) {
@@ -443,8 +474,8 @@ def uploadToArtifactory() {
 	if (params.ARTIFACTORY_SERVER) {
 		def server = Artifactory.server params.ARTIFACTORY_SERVER
 		def artifactoryRepo = params.ARTIFACTORY_REPO ? params.ARTIFACTORY_REPO : "sys-rt-generic-local"
-		def jenkinsDomain = params.JENKINS_DOMAIN ? params.JENKINS_DOMAIN : getJenkinsDomain()
-		def artifactoryUploadDir = "${artifactoryRepo}/${jenkinsDomain}/${JOB_NAME}/${BUILD_ID}/"
+		def artifactoryRoorDir = params.ARTIFACTORY_ROOT_DIR ? params.ARTIFACTORY_ROOT_DIR : getJenkinsDomain()
+		def artifactoryUploadDir = "${artifactoryRepo}/${artifactoryRoorDir}/${JOB_NAME}/${BUILD_ID}/"
 
 		def uploadSpec = """{
 			"files":[

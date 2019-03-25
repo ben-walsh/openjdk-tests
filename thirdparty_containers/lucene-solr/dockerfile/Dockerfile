@@ -14,7 +14,7 @@
 # AdoptOpenJDK jdk binary installed. Basic test dependent executions
 # are installed during the building process.
 #
-# Build example: `docker build -t adoptopenjdk-lucene-solr-test .`
+# Build example: `docker build -t adoptopenjdk-lucene-solr-test -f Dockerfile ../.`
 #
 # This Dockerfile builds image based on adoptopenjdk/openjdk8:latest.
 # If you want to build image based on other images, please use
@@ -31,7 +31,6 @@ FROM $IMAGE_NAME:$IMAGE_VERSION
 # Install test dependent executable files
 RUN apt-get update \
 	&& apt-get -y install \
-	ant \
 	apt-transport-https \
 	ca-certificates \
 	dirmngr \
@@ -40,11 +39,7 @@ RUN apt-get update \
 	make \
 	unzip \
 	vim \
-	wget \
-	python3-pip python3-dev \
-	&& cd /usr/local/bin \
-	&& ln -s /usr/bin/python3 python \
-	&& pip3 install --upgrade pip 
+	wget
 
 WORKDIR /
 ENV LUCENE_SOLR_HOME ${WORKDIR}
@@ -54,7 +49,7 @@ ENV ANT_VERSION 1.10.3
 RUN wget --no-check-certificate --no-cookies https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz && \
     gunzip apache-ant-${ANT_VERSION}-bin.tar.gz && \
     tar -xvf apache-ant-${ANT_VERSION}-bin.tar
-	
+
 #apache ivy setup 
 ENV IVY_VERSION 2.4.0
 RUN wget --no-check-certificate --no-cookies https://archive.apache.org/dist/ant/ivy/${IVY_VERSION}/apache-ivy-${IVY_VERSION}-bin.tar.gz && \

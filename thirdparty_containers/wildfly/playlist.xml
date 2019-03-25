@@ -16,9 +16,11 @@
 	<test>
 		<testCaseName>wildfly_test</testCaseName>
 	<command>docker run --rm $(EXTRA_DOCKER_ARGS) adoptopenjdk-wildfly-test:latest; \
-		$(TEST_STATUS)</command>
+		$(TEST_STATUS); \
+		docker rmi -f adoptopenjdk-wildfly-test
+	</command>
 		<levels>
-			<level>sanity</level>
+			<level>extended</level>
 		</levels>
 		<groups>
 			<group>external</group>

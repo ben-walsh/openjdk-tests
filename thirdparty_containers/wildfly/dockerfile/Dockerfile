@@ -14,7 +14,7 @@
 # AdoptOpenJDK jdk binary installed. Basic test dependent executions
 # are installed during the building process.
 #
-# Build example: `docker build -t adoptopenjdk-wildfly-test .`
+# Build example: `docker build -t adoptopenjdk-wildfly-test -f Dockerfile ../.`
 #
 # This Dockerfile builds image based on adoptopenjdk/openjdk8:latest.
 # If you want to build image based on other images, please use
@@ -42,7 +42,10 @@ RUN apt-get update \
 	vim \
 	wget
 
-RUN cd .
+# Install wildfly tests dependent
+RUN apt-get update \
+	&& apt-get -y install \
+	maven
 
 VOLUME ["/java"]
 ENV JAVA_HOME=/java \

@@ -25,7 +25,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 	<test>
@@ -40,7 +40,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 	<test>
@@ -55,7 +55,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 	<test>
@@ -70,7 +70,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 		<disabled>bugs.openjdk.java.net/browse/JDK-8212794</disabled>
 	</test>
@@ -86,7 +86,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 	<test>
@@ -101,7 +101,7 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 	<test>
@@ -116,7 +116,52 @@ limitations under the License.
 			<group>functional</group>
 		</groups>
 		<subsets>
-			<subset>11</subset>
+			<subset>11+</subset>
+		</subsets>
+	</test>
+	<test>
+		<testCaseName>MBCS_Tests_formatter_11_windows</testCaseName>
+		<command>$(TEST_RESROOT)$(D)test.bat; \
+	$(TEST_STATUS)</command>
+		<platformRequirements>os.win</platformRequirements>
+		<levels>
+			<level>special</level>
+		</levels>
+		<groups>
+			<group>functional</group>
+		</groups>
+		<subsets>
+			<subset>11+</subset>
+		</subsets>
+	</test>
+	<test>
+		<testCaseName>MBCS_Tests_formatter_11_ja_windows</testCaseName>
+		<command>$(TEST_RESROOT)$(D)test2.bat Windows ja JP MS932 TEST_STRING; \
+	$(TEST_STATUS)</command>
+		<platformRequirements>os.win</platformRequirements>
+		<levels>
+			<level>special</level>
+		</levels>
+		<groups>
+			<group>functional</group>
+		</groups>
+		<subsets>
+			<subset>11+</subset>
+		</subsets>
+	</test>
+	<test>
+		<testCaseName>MBCS_Tests_formatter_11_ko_windows</testCaseName>
+		<command>$(TEST_RESROOT)$(D)test2.bat Windows ko KR MS949 TEST_STRING; \
+	$(TEST_STATUS)</command>
+		<platformRequirements>os.win</platformRequirements>
+		<levels>
+			<level>special</level>
+		</levels>
+		<groups>
+			<group>functional</group>
+		</groups>
+		<subsets>
+			<subset>11+</subset>
 		</subsets>
 	</test>
 </playlist>
