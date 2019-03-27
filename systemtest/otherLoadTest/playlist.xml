@@ -82,7 +82,6 @@
 		</impls>
 	</test>
 	
-	<!-- Excluding the following test for OpenJDK10 and 11 builds. See AdoptOpenJDK/openjdk-systemtest/issues/87 for details -->
 	<test>
 		<testCaseName>ConcurrentLoadTest</testCaseName>
 		<variations>
@@ -96,10 +95,6 @@
 	-results-root=$(REPORTDIR)  \
 	-test=ConcurrentLoadTest; \
 	$(TEST_STATUS)</command> 
-		<subsets>
-			<subset>8</subset>
-			<subset>9</subset>
-		</subsets>
 		<levels>
 			<level>extended</level>
 		</levels>
